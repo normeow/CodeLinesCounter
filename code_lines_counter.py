@@ -4,12 +4,17 @@ import re
 
 class LinesCounter:
     def __init__(self):
-        #TODO don't forget about multilines comments
         self.ignorstr = {
-            ".cpp" : "",
-            ".java" : "",
-            ".py" : "^{#\w*|import\w*|\n}$"
+            ".cpp" : r"^{//|using|#include}",
+            ".java" : r"^{package|import|//}",
+            ".py" : r"^{#|import|\n}",
+            ".cs" : r"^{//\w*|using\w*}$"
         }
+
+        self.ignorfilename = {
+            ".cs" : "{\.Designer.cs}"
+        }
+
         self.res = {}
         self.file_pattern = "\.(\w*)"
 
@@ -19,8 +24,15 @@ class LinesCounter:
         return self.res
 
     def count_lines_in_file(self, file, ex):
+        if ex in self.ignorfilename.keys():
+            if re.search(self.ignorfilename[ex], file) != None:
+                return
+
         f = open(file)
-        ignore_pattern = self.ignorstr[ex]
+        ignore_pattern = ""
+        if ex in self.ignorstr.keys():
+            ignore_pattern = self.ignorstr[ex]
+        mltlncomment = False
         for line in f:
             if re.search(ignore_pattern, line) == None:
                 self.res[ex] += 1
@@ -29,16 +41,18 @@ class LinesCounter:
     def countlines(self, dir, extns):
         ls = os.listdir(dir)
         for it in ls:
+            path = dir + "/" + it
+            if os.path.isdir(path):
+                self.countlines(path, extns)
+                continue
             ex = re.search(self.file_pattern, it)
-            if ex == None:
-                self.countlines(dir+"/"+it, extns)
-            elif ex.group(0) in extns:
-                self.count_lines_in_file(dir+"/"+it, ex.group(0))
+            if ex != None:
+                if ex.group(0) in extns:
+                    self.count_lines_in_file(path, ex.group(0))
 
 #TODO argparser
-
 if __name__ == "__main__":
-    if len(sys.argv) == 0:
+    if len(sys.argv) < 1:
         print("Error, no arguments")
         print("[-path] [-extensions] {-a for all}")
         exit(1)
@@ -47,7 +61,3 @@ if __name__ == "__main__":
     extensions = sys.argv[2:]
     counter = LinesCounter()
     print(counter.get_lines_count(dir, extensions))
-
-#counter = LinesCounter()
-#print(counter.get_lines_count("D://Code/hakerrank", [".py"]))
-
