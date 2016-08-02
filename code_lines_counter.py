@@ -8,7 +8,7 @@ class LinesCounter:
             ".cpp" : r"^{//|using|#include}",
             ".java" : r"^{package|import|//}",
             ".py" : r"^{#|import|\n}",
-            ".cs" : r"^{//\w*|using\w*}$"
+            ".cs" : r"^{//|using|///}"
         }
 
         self.ignorfilename = {
@@ -32,7 +32,6 @@ class LinesCounter:
         ignore_pattern = ""
         if ex in self.ignorstr.keys():
             ignore_pattern = self.ignorstr[ex]
-        mltlncomment = False
         for line in f:
             if re.search(ignore_pattern, line) == None:
                 self.res[ex] += 1
@@ -41,6 +40,8 @@ class LinesCounter:
     def countlines(self, dir, extns):
         ls = os.listdir(dir)
         for it in ls:
+            if it == "ntl":
+                continue
             path = dir + "/" + it
             if os.path.isdir(path):
                 self.countlines(path, extns)
