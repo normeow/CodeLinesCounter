@@ -5,10 +5,10 @@ import re
 class LinesCounter:
     def __init__(self):
         self.ignorstr = {
-            ".cpp" : r"^{//|using|#include}",
-            ".java" : r"^{package|import|//}",
-            ".py" : r"^{#|import|\n}",
-            ".cs" : r"^{//|using|///}"
+            ".cpp" : "^(//|using|#include)",
+            ".java" : "^(package|import|//)",
+            ".py" : "^{#|import|\n}",
+            ".cs" : "^//|^using (\w+|(\w*\.)+\w+)$|^///"
         }
 
         self.ignorfilename = {
