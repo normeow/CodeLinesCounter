@@ -15,6 +15,14 @@ class LinesCounter:
             ".cs" : "{\.Designer.cs}"
         }
 
+        self.ignore_multilines = {
+            ".cs" : ["/*", "*/"],
+            ".cpp" : ["/*", "*/"],
+            ".java": ["/*", "*/"],
+            ".py": ["'''", "'''"]
+
+        }
+
         self.res = {}
         self.file_pattern = "\.(\w*)"
 
@@ -29,13 +37,22 @@ class LinesCounter:
                 return
 
         f = open(file)
-        ignore_pattern = ""
+        mltlcomment = False;
+        if ex in self.ignore_multilines:
+            openmlt = self.ignore_multilines[ex][0]
+            closemlt = self.ignore_multilines[ex][1]
+
         if ex in self.ignorstr.keys():
             ignore_pattern = self.ignorstr[ex]
         for line in f:
-            if re.search(ignore_pattern, line) == None:
-                self.res[ex] += 1
-
+            if not mltlcomment:
+                if openmlt in line:
+                    mltlcomment == True
+                elif re.search(ignore_pattern, line) == None:
+                    self.res[ex] += 1
+            else:
+                if closemlt in line:
+                    mltlcomment = False
 
     def countlines(self, dir, extns):
         ls = os.listdir(dir)
