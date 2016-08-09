@@ -1,10 +1,13 @@
+# -*- coding: utf-8 -*-
+
 import sys
 import os
 import re
 
 class LinesCounter:
+    extensions = [".cpp", ".java", ".py", ".cs"]
     def __init__(self):
-        self.extensions = [".cpp", ".java", ".py", ".cs"]
+
 
         self.ignorstr = {
             ".cpp" : "^(//|using|#include)",
@@ -72,13 +75,13 @@ class LinesCounter:
 
 #TODO argparser
 if __name__ == "__main__":
-    if len(sys.argv) < 1:
+    if len(sys.argv) < 2:
         print("Error, no arguments")
-        print("[-path] [-extensions] {-a for all}")
+        print("[-path] [-extensions] {optional}")
         exit(1)
 
     dir = sys.argv[1]
-    if sys.argv[2] == "-a":
+    if len(sys.argv) == 2:
         extensions = None
     else:
         extensions = sys.argv[2:]
