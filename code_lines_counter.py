@@ -4,6 +4,8 @@ import re
 
 class LinesCounter:
     def __init__(self):
+        self.extensions = [".cpp", ".java", ".py", ".cs"]
+
         self.ignorstr = {
             ".cpp" : "^(//|using|#include)",
             ".java" : "^(package|import|//)",
@@ -27,6 +29,8 @@ class LinesCounter:
         self.file_pattern = "\.(\w*)"
 
     def get_lines_count(self, dir, extns):
+        if extns == None:
+            extns = self.extensions
         self.res = dict.fromkeys(extns, 0)
         self.countlines(dir,extns)
         return self.res
@@ -57,8 +61,6 @@ class LinesCounter:
     def countlines(self, dir, extns):
         ls = os.listdir(dir)
         for it in ls:
-            if it == "ntl":
-                continue
             path = dir + "/" + it
             if os.path.isdir(path):
                 self.countlines(path, extns)
@@ -76,6 +78,9 @@ if __name__ == "__main__":
         exit(1)
 
     dir = sys.argv[1]
-    extensions = sys.argv[2:]
+    if sys.argv[2] == "-a":
+        extensions = None
+    else:
+        extensions = sys.argv[2:]
     counter = LinesCounter()
     print(counter.get_lines_count(dir, extensions))
