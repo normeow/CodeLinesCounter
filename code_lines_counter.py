@@ -7,8 +7,6 @@ import re
 class LinesCounter:
     extensions = [".cpp", ".java", ".py", ".cs"]
     def __init__(self):
-
-
         self.ignorstr = {
             ".cpp" : "^(//|using|#include)",
             ".java" : "^(package|import|//)",
@@ -44,24 +42,48 @@ class LinesCounter:
                 return
 
         f = open(file)
+        nopattern = True
+        if ex in self.ignorstr.keys():
+            ignore_pattern = self.ignorstr[ex]
+            nopattern = False
+
+        canbemulticomment = False
         mltlcomment = False;
         if ex in self.ignore_multilines:
             openmlt = self.ignore_multilines[ex][0]
             closemlt = self.ignore_multilines[ex][1]
+            canbemulticomment = True
 
-        if ex in self.ignorstr.keys():
-            ignore_pattern = self.ignorstr[ex]
-        for line in f:
-            if not mltlcomment:
-                if openmlt in line:
-                    mltlcomment == True
-                elif re.search(ignore_pattern, line) == None:
+        if canbemulticomment:
+            for line in f:
+                line = line.strip()
+                if not mltlcomment:
+                    if openmlt in line:
+                        if closemlt not in line:
+                          mltlcomment == True
+                        if line.find(openmlt) != 0:
+                            self.res[ex] += 1
+                    else:
+                        if nopattern or self._islineok(ignore_pattern, line):
+                            self.res[ex] += 1
+                else:
+                    if closemlt in line:
+                        mltlcomment = False
+                        if line.find(closemlt) != len(line) - len(closemlt):
+                            self.res[ex] += 1
                     self.res[ex] += 1
-            else:
-                if closemlt in line:
-                    mltlcomment = False
+        else:
+            for line in f:
+                if nopattern or self._islineok(ignore_pattern, line):
+                    self.res[ex] += 1
+
+
+    def _islineok(self, ignore_pattern, line):
+        return re.search(ignore_pattern, line) == None
 
     def countlines(self, dir, extns):
+        if not os.path.exists(dir):
+            raise Exception("Directory " + dir + " doesn't exist" );
         ls = os.listdir(dir)
         for it in ls:
             path = dir + "/" + it
@@ -73,7 +95,7 @@ class LinesCounter:
                 if ex.group(0) in extns:
                     self.count_lines_in_file(path, ex.group(0))
 
-#TODO argparser
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Error, no arguments")
@@ -86,4 +108,7 @@ if __name__ == "__main__":
     else:
         extensions = sys.argv[2:]
     counter = LinesCounter()
-    print(counter.get_lines_count(dir, extensions))
+    try:
+        print(counter.get_lines_count(dir, extensions))
+    except Exception as ex:
+        print(repr(ex))
