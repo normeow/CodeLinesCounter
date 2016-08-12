@@ -7,18 +7,18 @@ import re
 class LinesCounter:
     extensions = [".cpp", ".java", ".py", ".cs"]
     def __init__(self):
-        self.ignorstr = {
+        self._ignorstr = {
             ".cpp" : "^(//|using|#include)",
             ".java" : "^(package|import|//)",
             ".py" : "^{#|import|\n}",
             ".cs" : "^//|^using (\w+|(\w*\.)+\w+)$|^///"
         }
 
-        self.ignorfilename = {
+        self._ignorfilename = {
             ".cs" : "{\.Designer.cs}"
         }
 
-        self.ignore_multilines = {
+        self._ignore_multilines = {
             ".cs" : ["/*", "*/"],
             ".cpp" : ["/*", "*/"],
             ".java": ["/*", "*/"],
@@ -26,32 +26,32 @@ class LinesCounter:
 
         }
 
-        self.res = {}
-        self.file_pattern = "\.(\w*)"
+        self._res = {}
+        self._file_pattern = "\.(\w*)"
 
     def get_lines_count(self, dir, extns):
         if extns == None:
             extns = self.extensions
-        self.res = dict.fromkeys(extns, 0)
-        self.countlines(dir,extns)
-        return self.res
+        self._res = dict.fromkeys(extns, 0)
+        self._countlines(dir, extns)
+        return self._res
 
-    def count_lines_in_file(self, file, ex):
-        if ex in self.ignorfilename.keys():
-            if re.search(self.ignorfilename[ex], file) != None:
+    def _count_lines_in_file(self, file, ex):
+        if ex in self._ignorfilename.keys():
+            if re.search(self._ignorfilename[ex], file) != None:
                 return
 
         f = open(file)
         nopattern = True
-        if ex in self.ignorstr.keys():
-            ignore_pattern = self.ignorstr[ex]
+        if ex in self._ignorstr.keys():
+            ignore_pattern = self._ignorstr[ex]
             nopattern = False
 
         canbemulticomment = False
         mltlcomment = False;
-        if ex in self.ignore_multilines:
-            openmlt = self.ignore_multilines[ex][0]
-            closemlt = self.ignore_multilines[ex][1]
+        if ex in self._ignore_multilines:
+            openmlt = self._ignore_multilines[ex][0]
+            closemlt = self._ignore_multilines[ex][1]
             canbemulticomment = True
 
         if canbemulticomment:
@@ -62,38 +62,38 @@ class LinesCounter:
                         if closemlt not in line:
                           mltlcomment == True
                         if line.find(openmlt) != 0:
-                            self.res[ex] += 1
+                            self._res[ex] += 1
                     else:
                         if nopattern or self._islineok(ignore_pattern, line):
-                            self.res[ex] += 1
+                            self._res[ex] += 1
                 else:
                     if closemlt in line:
                         mltlcomment = False
                         if line.find(closemlt) != len(line) - len(closemlt):
-                            self.res[ex] += 1
-                    self.res[ex] += 1
+                            self._res[ex] += 1
+                    self._res[ex] += 1
         else:
             for line in f:
                 if nopattern or self._islineok(ignore_pattern, line):
-                    self.res[ex] += 1
+                    self._res[ex] += 1
 
 
     def _islineok(self, ignore_pattern, line):
         return re.search(ignore_pattern, line) == None
 
-    def countlines(self, dir, extns):
+    def _countlines(self, dir, extns):
         if not os.path.exists(dir):
             raise Exception("Directory " + dir + " doesn't exist" );
         ls = os.listdir(dir)
         for it in ls:
             path = dir + "/" + it
             if os.path.isdir(path):
-                self.countlines(path, extns)
+                self._countlines(path, extns)
                 continue
-            ex = re.search(self.file_pattern, it)
+            ex = re.search(self._file_pattern, it)
             if ex != None:
                 if ex.group(0) in extns:
-                    self.count_lines_in_file(path, ex.group(0))
+                    self._count_lines_in_file(path, ex.group(0))
 
 
 if __name__ == "__main__":
